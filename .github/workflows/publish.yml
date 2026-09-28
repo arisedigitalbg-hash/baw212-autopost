@@ -34,6 +34,7 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode || 'run' }}"
           if [ "$MODE" = "check" ]; then python publish.py --check;
+          elif [ "$MODE" = "test" ]; then python publish.py --test;
           elif [ "$MODE" = "dry-run" ]; then python publish.py --dry-run;
           else python publish.py; fi
       - name: Запази какво е публикувано
