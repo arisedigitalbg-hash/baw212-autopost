@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BAW 212 — токен</title>
+<style>
+  :root { --ink:#14191a; --paper:#f4f5f3; --green:#1c3328; --line:#d8dcd8; --muted:#5d6a63; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px 16px 64px; background:var(--paper); color:var(--ink);
+         font:16px/1.55 -apple-system,"Segoe UI",Roboto,Arial,sans-serif; }
+  main { max-width:760px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p.sub { color:var(--muted); margin:0 0 24px; }
+  section { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px; margin-bottom:16px; }
+  h2 { font-size:15px; margin:0 0 10px; letter-spacing:.02em; text-transform:uppercase; color:var(--green); }
+  .val { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:13px; word-break:break-all;
+         background:#f7f8f7; border:1px solid var(--line); border-radius:8px; padding:10px; }
+  button { background:var(--green); color:#fff; border:0; border-radius:8px; padding:9px 14px;
+           font-size:14px; cursor:pointer; margin-top:10px; }
+  button.ghost { background:#fff; color:var(--green); border:1px solid var(--green); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  .page { border-top:1px solid var(--line); padding-top:12px; margin-top:12px; }
+  .name { font-weight:700; }
+  .lbl { font-size:12px; color:var(--muted); margin:8px 0 2px; }
+  .warn { background:#fff6e5; border:1px solid #e6cf9a; border-radius:8px; padding:12px; font-size:14px; }
+  input { width:100%; padding:9px; border:1px solid var(--line); border-radius:8px; font-size:14px; }
+  .ok { color:#1c6b3a; font-weight:700; }
+  .bad { color:#a12a2a; font-weight:700; }
+</style>
+</head>
+<body>
+<main>
+  <h1>BAW 212 — помощник за токена</h1>
+  <p class="sub">Всичко се случва в твоя браузър. Нищо не се изпраща другаде.</p>
+
+  <div class="warn">Токените са като пароли. Не ги пращай в чат и не ги слагай във файл.
+  Копирай ги само в GitHub → Settings → Secrets.</div>
+
+  <section id="s-token">
+    <h2>1. Токен на потребителя</h2>
+    <div id="token-box">Отвори тази страница чрез линка за вход — токенът идва в адреса.</div>
+  </section>
+
+  <section id="s-long" style="display:none">
+    <h2>2. Дълъг токен (по избор, но силно препоръчително)</h2>
+    <p style="font-size:14px;margin:0 0 8px">Краткият токен живее 1–2 часа. Въведи App Secret
+      (Meta → App settings → Basic → Show), за да го удължим до 60 дни.</p>
+    <input id="secret" type="password" placeholder="App Secret" autocomplete="off">
+    <div class="row"><button id="btn-long">Удължи токена</button></div>
+    <div id="long-box"></div>
+  </section>
+
+  <section id="s-pages" style="display:none">
+    <h2>3. Страници и Instagram</h2>
+    <div id="pages-box">Зареждам…</div>
+  </section>
+</main>
+
+<script>
+const V = "v26.0";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+function copyBtn(label, value) {
+  const b = document.createElement("button");
+  b.className = "ghost"; b.textContent = label;
+  b.onclick = async () => {
+    try { await navigator.clipboard.writeText(value); b.textContent = "Копирано ✓"; }
+    catch (e) { b.textContent = "Копирането не стана — маркирай ръчно"; }
+    setTimeout(() => b.textContent = label, 2500);
+  };
+  return b;
+}
+
+function showToken(t) {
+  const box = $("token-box"); box.innerHTML = "";
+  const d = document.createElement("div"); d.className = "val"; d.textContent = t;
+  box.appendChild(d); box.appendChild(copyBtn("Копирай токена", t));
+  $("s-long").style.display = ""; $("s-pages").style.display = "";
+  loadPages(t);
+}
+
+async function api(path, params) {
+  const u = new URL("https://graph.facebook.com/" + V + "/" + path);
+  Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
+  const r = await fetch(u);
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message);
+  return j;
+}
+
+async function loadPages(token) {
+  const box = $("pages-box");
+  try {
+    const j = await api("me/accounts", { fields: "name,id,access_token,instagram_business_account{id,username}", access_token: token });
+    if (!j.data || !j.data.length) {
+      box.innerHTML = '<span class="bad">Няма нито една страница.</span> Значи достъпът до страницата още не е стигнал до този профил.';
+      return;
+    }
+    box.innerHTML = "";
+    j.data.forEach(p => {
+      const w = document.createElement("div"); w.className = "page";
+      w.innerHTML = '<div class="name">' + esc(p.name) + '</div>' +
+        '<div class="lbl">FB_PAGE_ID</div><div class="val">' + esc(p.id) + '</div>';
+      w.appendChild(copyBtn("Копирай FB_PAGE_ID", p.id));
+      const l1 = document.createElement("div"); l1.className = "lbl";
+      l1.textContent = "META_PAGE_TOKEN (таен)"; w.appendChild(l1);
+      const t = document.createElement("div"); t.className = "val";
+      t.textContent = p.access_token.slice(0, 12) + "…………"; w.appendChild(t);
+      w.appendChild(copyBtn("Копирай META_PAGE_TOKEN", p.access_token));
+      const ig = p.instagram_business_account;
+      const l2 = document.createElement("div"); l2.className = "lbl"; l2.textContent = "IG_USER_ID"; w.appendChild(l2);
+      const iv = document.createElement("div"); iv.className = "val";
+      if (ig) { iv.textContent = ig.id + (ig.username ? "  (@" + ig.username + ")" : ""); }
+      else { iv.innerHTML = '<span class="bad">няма свързан Instagram Business профил</span>'; }
+      w.appendChild(iv);
+      if (ig) w.appendChild(copyBtn("Копирай IG_USER_ID", ig.id));
+      box.appendChild(w);
+    });
+  } catch (e) {
+    box.innerHTML = '<span class="bad">Грешка:</span> ' + esc(e.message);
+  }
+}
+
+$("btn-long").onclick = async () => {
+  const secret = $("secret").value.trim();
+  const short = window.__token;
+  if (!secret) { $("long-box").innerHTML = '<span class="bad">Въведи App Secret.</span>'; return; }
+  $("long-box").textContent = "Обменям…";
+  try {
+    const j = await api("oauth/access_token", {
+      grant_type: "fb_exchange_token", client_id: window.__appId,
+      client_secret: secret, fb_exchange_token: short
+    });
+    window.__token = j.access_token;
+    $("long-box").innerHTML = '<div class="ok">Готово — токенът е удължен.</div>';
+    const d = document.createElement("div"); d.className = "val"; d.textContent = j.access_token;
+    $("long-box").appendChild(d);
+    $("long-box").appendChild(copyBtn("Копирай дългия токен", j.access_token));
+    $("secret").value = "";
+    loadPages(j.access_token);
+  } catch (e) {
+    $("long-box").innerHTML = '<span class="bad">Грешка:</span> ' + esc(e.message);
+  }
+};
+
+(function init() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  const q = new URLSearchParams(location.search);
+  window.__appId = q.get("app_id") || "2071035917110004";
+  const t = h.get("access_token");
+  if (t) { window.__token = t; showToken(t); }
+  else if (h.get("error_description")) {
+    $("token-box").innerHTML = '<span class="bad">Facebook върна грешка:</span> ' + esc(h.get("error_description"));
+  }
+})();
+</script>
+</body>
+</html>
