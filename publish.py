@@ -10,6 +10,7 @@ BAW 212 България — автоматично публикуване въ�
 Ръчни режими:
   python publish.py --check     проверява токена, профилите и дали всички снимки се отварят
   python publish.py --dry-run   показва какво би публикувал сега, без да публикува
+  python publish.py --test      пробна публикация: скрита във Facebook, неизпратена в Instagram
   python publish.py --list      целият график със статус
 
 Нужни променливи (GitHub → Settings → Secrets and variables → Actions):
@@ -132,6 +133,44 @@ def cmd_check(posts):
     print("Всичко е наред.")
 
 
+def cmd_test(posts):
+    """Пробна публикация, която не се вижда от никого:
+       Facebook — скрита публикация (само в Business Suite), Instagram — подготвена, но непусната."""
+    token, page_id, ig_id = env("META_PAGE_TOKEN"), env("FB_PAGE_ID"), env("IG_USER_ID")
+    fb = next(p for p in posts if p["platform"] == "facebook")
+    ig = next(p for p in posts if p["platform"] == "instagram")
+
+    r = api("POST", f"{page_id}/photos", {
+        "url": image_url(fb),
+        "message": "ТЕСТ на автоматичното публикуване — тази публикация е скрита и се трие.\n\n"
+                   + fb["caption"],
+        "published": "false",
+        "access_token": token,
+    })
+    pid = r.get("id") or r.get("post_id")
+    print("Facebook: качена СКРИТА публикация, id =", pid)
+    print("  Виж я в Meta Business Suite → Съдържание → Публикации → раздел за скрити/чернови.")
+    print("  Изтрий я оттам, след като я видиш.")
+
+    c = api("POST", f"{ig_id}/media",
+            {"image_url": image_url(ig), "caption": ig["caption"], "access_token": token})
+    cid = c["id"]
+    status = "?"
+    for _ in range(20):
+        s = api("GET", cid, {"fields": "status_code", "access_token": token})
+        status = s.get("status_code", "?")
+        if status in ("FINISHED", "ERROR"):
+            break
+        time.sleep(3)
+    if status == "FINISHED":
+        print("Instagram: публикацията се подготви успешно и НЕ е пусната. Всичко работи.")
+        print("  (подготовката изтича сама след 24 часа — нищо не остава)")
+    else:
+        print("Instagram: проблем при подготовката, статус:", status)
+        sys.exit(1)
+    print("Тестът мина. Нищо не е излязло публично.")
+
+
 def cmd_run(posts, state, dry):
     now = datetime.now(timezone.utc)
     def pending(p):
@@ -177,6 +216,8 @@ def main():
         cmd_list(posts, state)
     elif "--check" in args:
         cmd_check(posts)
+    elif "--test" in args:
+        cmd_test(posts)
     else:
         sys.exit(cmd_run(posts, state, dry="--dry-run" in args))
 
