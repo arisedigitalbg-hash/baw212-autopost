@@ -1,0 +1,48 @@
+name: Публикуване BAW 212
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "run = публикувай, check = провери настройките, dry-run = само покажи"
+        default: "run"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Публикувай
+        env:
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          FB_PAGE_ID: ${{ vars.FB_PAGE_ID }}
+          IG_USER_ID: ${{ vars.IG_USER_ID }}
+          IMAGE_BASE_URL: ${{ vars.IMAGE_BASE_URL }}
+          GRAPH_VERSION: ${{ vars.GRAPH_VERSION }}
+        run: |
+          MODE="${{ github.event.inputs.mode || 'run' }}"
+          if [ "$MODE" = "check" ]; then python publish.py --check;
+          elif [ "$MODE" = "dry-run" ]; then python publish.py --dry-run;
+          else python publish.py; fi
+      - name: Запази какво е публикувано
+        if: always()
+        run: |
+          if [ -f state.json ] && [ -n "$(git status --porcelain state.json)" ]; then
+            git config user.name "baw212-bot"
+            git config user.email "bot@users.noreply.github.com"
+            git add state.json
+            git commit -m "Публикувани постове: $(date -u +%F\ %H:%M)"
+            git push
+          fi
