@@ -81,12 +81,26 @@ def image_url(post):
     return env("IMAGE_BASE_URL").rstrip("/") + "/" + urllib.parse.quote(post["image"])
 
 
+def add_comment(target_id, text, token):
+    """Първи коментар под публикацията — там слагаме линка, защото Facebook
+       намалява обхвата на постове с външен линк в самия текст."""
+    if not text:
+        return
+    try:
+        api("POST", f"{target_id}/comments", {"message": text, "access_token": token})
+        print("   + първи коментар")
+    except Exception as e:
+        print("   ! коментарът не мина:", e)
+
+
 def publish_facebook(post, token, page_id):
     params = {"url": image_url(post), "message": post["caption"], "access_token": token}
     if post.get("alt"):
         params["alt_text_custom"] = post["alt"]
     r = api("POST", f"{page_id}/photos", params)
-    return r.get("post_id") or r.get("id")
+    pid = r.get("post_id") or r.get("id")
+    add_comment(pid, post.get("comment"), token)
+    return pid
 
 
 def publish_instagram(post, token, ig_id):
@@ -101,7 +115,9 @@ def publish_instagram(post, token, ig_id):
             raise RuntimeError("Instagram не успя да обработи снимката.")
         time.sleep(3)
     r = api("POST", f"{ig_id}/media_publish", {"creation_id": cid, "access_token": token})
-    return r.get("id")
+    mid = r.get("id")
+    add_comment(mid, post.get("comment"), token)
+    return mid
 
 
 def cmd_list(posts, state):
