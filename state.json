@@ -1,4 +1,36 @@
 {
+ "n01": {
+  "at": "2026-11-04T17:55:52.449051+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
+ "n02": {
+  "at": "2026-11-04T17:55:52.449051+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
+ "n03": {
+  "at": "2026-11-04T17:55:52.449051+00:00",
+  "error": "Meta отказа (400): Missing or invalid image file",
+  "ok": false,
+  "tries": 1
+ },
+ "n04": {
+  "at": "2026-11-04T17:55:52.449051+00:00",
+  "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
+  "ok": false,
+  "tries": 1
+ },
+ "n57": {
+  "at": "2026-11-04T17:55:52.449051+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
+ "n58": {
+  "at": "2026-11-04T17:55:52.449051+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
  "p01": {
   "at": "2026-10-01T06:51:59.273194+00:00",
   "ok": true,
