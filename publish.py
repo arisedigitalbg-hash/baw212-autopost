@@ -3,9 +3,14 @@
 BAW 212 България — автоматично публикуване във Facebook и Instagram.
 
 Пуска се от GitHub Actions на всеки 15 минути. Всеки път:
-  1. чете posts.json (40-те поста с дата и час по София),
+  1. чете posts.json (постовете с дата и час по София),
   2. публикува тези, чийто час е настъпил и още не са публикувани,
   3. записва резултата в state.json, за да не публикува нищо два пъти.
+
+Всеки пост има едно от трите:
+  "image"   един кадър
+  "images"  списък кадри — излиза карусел, най-много 10, в двете мрежи
+  "video"   видео файл — във Facebook като видео, в Instagram като Reel
 
 Ръчни режими:
   python publish.py --check     проверява токена, профилите и дали всички снимки се отварят
@@ -77,8 +82,14 @@ def api(method, path, params):
         raise RuntimeError(f"Meta отказа ({e.code}): {msg}") from None
 
 
-def image_url(post):
-    return env("IMAGE_BASE_URL").rstrip("/") + "/" + urllib.parse.quote(post["image"])
+def image_url(name):
+    return env("IMAGE_BASE_URL").rstrip("/") + "/" + urllib.parse.quote(name)
+
+
+def images(post):
+    """Един кадър или няколко (карусел). Мрежите приемат най-много 10."""
+    lst = post.get("images") or [post["image"]]
+    return lst[:10]
 
 
 def add_comment(target_id, text, token):
@@ -94,26 +105,94 @@ def add_comment(target_id, text, token):
 
 
 def publish_facebook(post, token, page_id):
-    params = {"url": image_url(post), "message": post["caption"], "access_token": token}
-    if post.get("alt"):
-        params["alt_text_custom"] = post["alt"]
-    r = api("POST", f"{page_id}/photos", params)
-    pid = r.get("post_id") or r.get("id")
+    if post.get("video"):
+        r = api("POST", f"{page_id}/videos", {
+            "file_url": image_url(post["video"]),
+            "description": post["caption"],
+            "access_token": token,
+        })
+        pid = r.get("id")
+        print("   видео")
+        add_comment(pid, post.get("comment"), token)
+        return pid
+    imgs = images(post)
+    if len(imgs) == 1:
+        params = {"url": image_url(imgs[0]), "message": post["caption"], "access_token": token}
+        if post.get("alt"):
+            params["alt_text_custom"] = post["alt"]
+        r = api("POST", f"{page_id}/photos", params)
+        pid = r.get("post_id") or r.get("id")
+    else:
+        # карусел: първо качваме кадрите скрити, после ги закачаме към една публикация
+        alts = post.get("alts") or []          # буквално — за екранни четци и за Meta
+        caps = post.get("captions") or []      # за хората — вижда се при отваряне на кадъра
+        fbids = []
+        for i, name in enumerate(imgs):
+            up = {"url": image_url(name), "published": "false", "access_token": token}
+            a = alts[i] if i < len(alts) else post.get("alt")
+            if a:
+                up["alt_text_custom"] = a
+            c = caps[i] if i < len(caps) else None
+            if c:
+                up["caption"] = c
+            fbids.append(api("POST", f"{page_id}/photos", up)["id"])
+        params = {"message": post["caption"], "access_token": token}
+        for i, fid in enumerate(fbids):
+            params[f"attached_media[{i}]"] = json.dumps({"media_fbid": fid})
+        r = api("POST", f"{page_id}/feed", params)
+        pid = r.get("id")
+        print(f"   карусел от {len(fbids)} кадъра")
     add_comment(pid, post.get("comment"), token)
     return pid
 
 
-def publish_instagram(post, token, ig_id):
-    c = api("POST", f"{ig_id}/media",
-            {"image_url": image_url(post), "caption": post["caption"], "access_token": token})
-    cid = c["id"]
-    for _ in range(20):                         # до ~1 минута за обработка
+def wait_container(cid, token, what="снимката", tries=20, pause=3):
+    for _ in range(tries):
         s = api("GET", cid, {"fields": "status_code", "access_token": token})
         if s.get("status_code") == "FINISHED":
-            break
+            return
         if s.get("status_code") == "ERROR":
-            raise RuntimeError("Instagram не успя да обработи снимката.")
-        time.sleep(3)
+            raise RuntimeError(f"Instagram не успя да обработи {what}.")
+        time.sleep(pause)
+    raise RuntimeError(f"Instagram се забави прекалено с {what}.")
+
+
+def publish_instagram(post, token, ig_id):
+    if post.get("video"):
+        # Reel: обработката на видео отнема минути, затова чакаме по-дълго
+        c = api("POST", f"{ig_id}/media", {
+            "media_type": "REELS",
+            "video_url": image_url(post["video"]),
+            "caption": post["caption"],
+            "share_to_feed": "true",
+            "access_token": token,
+        })
+        cid = c["id"]
+        wait_container(cid, token, "видеото", tries=60, pause=10)
+        print("   Reel")
+        r = api("POST", f"{ig_id}/media_publish", {"creation_id": cid, "access_token": token})
+        mid = r.get("id")
+        add_comment(mid, post.get("comment"), token)
+        return mid
+    imgs = images(post)
+    if len(imgs) == 1:
+        c = api("POST", f"{ig_id}/media",
+                {"image_url": image_url(imgs[0]), "caption": post["caption"], "access_token": token})
+        cid = c["id"]
+        wait_container(cid, token)
+    else:
+        children = []
+        for name in imgs:
+            ch = api("POST", f"{ig_id}/media", {"image_url": image_url(name),
+                                                "is_carousel_item": "true", "access_token": token})
+            wait_container(ch["id"], token, "кадър от карусела")
+            children.append(ch["id"])
+        c = api("POST", f"{ig_id}/media", {"media_type": "CAROUSEL",
+                                           "children": ",".join(children),
+                                           "caption": post["caption"], "access_token": token})
+        cid = c["id"]
+        wait_container(cid, token, "карусела")
+        print(f"   карусел от {len(children)} кадъра")
     r = api("POST", f"{ig_id}/media_publish", {"creation_id": cid, "access_token": token})
     mid = r.get("id")
     add_comment(mid, post.get("comment"), token)
@@ -124,7 +203,12 @@ def cmd_list(posts, state):
     for p in posts:
         s = state.get(p["id"])
         mark = "✓ публикуван" if s and s.get("ok") else ("✗ грешка" if s else "· чака")
-        print(f'{p["when"].replace("T", " ")}  {p["platform"]:<9}  пост {p["post"]:>2}  {mark}')
+        if p.get("video"):
+            kind = "видео   "
+        else:
+            n = len(p.get("images") or [p["image"]])
+            kind = f"карусел {n}" if n > 1 else "снимка  "
+        print(f'{p["when"].replace("T", " ")}  {p["platform"]:<9}  пост {p["post"]:>2}  {kind}  {mark}')
 
 
 def cmd_check(posts):
@@ -134,16 +218,18 @@ def cmd_check(posts):
     print("Facebook страница:", page.get("name"))
     ig = api("GET", ig_id, {"fields": "username", "access_token": token})
     print("Instagram профил: @" + ig.get("username", "?"))
-    bad = 0
+    bad = total = 0
     for p in posts:
-        try:
-            with urllib.request.urlopen(urllib.request.Request(image_url(p), method="HEAD"), timeout=30) as r:
-                ctype = r.headers.get("Content-Type", "")
-                if "image" not in ctype:
-                    bad += 1; print("  не е снимка:", p["image"], ctype)
-        except Exception as e:
-            bad += 1; print("  не се отваря:", p["image"], e)
-    print(f"Снимки: {len(posts) - bad} от {len(posts)} се отварят.")
+        for name in ([p["video"]] if p.get("video") else images(p)):
+            total += 1
+            try:
+                with urllib.request.urlopen(urllib.request.Request(image_url(name), method="HEAD"), timeout=30) as r:
+                    ctype = r.headers.get("Content-Type", "")
+                    if "image" not in ctype and "video" not in ctype:
+                        bad += 1; print("  не е снимка:", name, ctype)
+            except Exception as e:
+                bad += 1; print("  не се отваря:", name, e)
+    print(f"Снимки: {total - bad} от {total} се отварят.")
     if bad:
         sys.exit(1)
     print("Всичко е наред.")
@@ -157,7 +243,7 @@ def cmd_test(posts):
     ig = next(p for p in posts if p["platform"] == "instagram")
 
     r = api("POST", f"{page_id}/photos", {
-        "url": image_url(fb),
+        "url": image_url(images(fb)[0]),
         "message": "ТЕСТ на автоматичното публикуване — тази публикация е скрита и се трие.\n\n"
                    + fb["caption"],
         "published": "false",
@@ -169,7 +255,7 @@ def cmd_test(posts):
     print("  Изтрий я оттам, след като я видиш.")
 
     c = api("POST", f"{ig_id}/media",
-            {"image_url": image_url(ig), "caption": ig["caption"], "access_token": token})
+            {"image_url": image_url(images(ig)[0]), "caption": ig["caption"], "access_token": token})
     cid = c["id"]
     status = "?"
     for _ in range(20):
