@@ -24,6 +24,12 @@
   "ok": true,
   "remote_id": "1126436023880183_122130693663309338"
  },
+ "n06": {
+  "at": "2026-11-05T19:00:30.210520+00:00",
+  "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
+  "ok": false,
+  "tries": 1
+ },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
   "ok": false,
