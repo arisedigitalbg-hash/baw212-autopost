@@ -25,10 +25,15 @@
   "remote_id": "1126436023880183_122130693663309338"
  },
  "n06": {
-  "at": "2026-11-06T00:17:56.788134+00:00",
-  "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
+  "at": "2026-11-06T15:07:08.086783+00:00",
   "ok": false,
-  "tries": 2
+  "skipped": "too_late"
+ },
+ "n07": {
+  "at": "2026-11-06T15:07:08.086783+00:00",
+  "error": "Meta отказа (400): Missing or invalid image file",
+  "ok": false,
+  "tries": 1
  },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
@@ -39,6 +44,18 @@
   "at": "2026-11-04T17:55:52.449051+00:00",
   "ok": false,
   "skipped": "too_late"
+ },
+ "n59": {
+  "at": "2026-11-06T15:07:08.086783+00:00",
+  "error": "Meta отказа (400): Unable to fetch video file from URL.",
+  "ok": false,
+  "tries": 1
+ },
+ "n60": {
+  "at": "2026-11-06T15:07:08.086783+00:00",
+  "error": "Instagram не успя да обработи видеото.",
+  "ok": false,
+  "tries": 1
  },
  "p01": {
   "at": "2026-10-01T06:51:59.273194+00:00",
