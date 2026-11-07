@@ -40,16 +40,15 @@
   "skipped": "too_late"
  },
  "n09": {
-  "at": "2026-11-07T18:20:11.164270+00:00",
-  "error": "Meta отказа (400): Missing or invalid image file",
+  "at": "2026-11-07T22:13:12.393113+00:00",
   "ok": false,
-  "tries": 2
+  "skipped": "too_late"
  },
  "n10": {
-  "at": "2026-11-07T18:20:11.164270+00:00",
+  "at": "2026-11-07T22:13:12.393113+00:00",
   "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
   "ok": false,
-  "tries": 1
+  "tries": 2
  },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
