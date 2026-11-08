@@ -45,10 +45,10 @@
   "skipped": "too_late"
  },
  "n10": {
-  "at": "2026-11-07T22:13:12.393113+00:00",
+  "at": "2026-11-08T01:28:49.481522+00:00",
   "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
   "ok": false,
-  "tries": 2
+  "tries": 3
  },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
