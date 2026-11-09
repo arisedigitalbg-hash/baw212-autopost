@@ -57,10 +57,10 @@
   "tries": 3
  },
  "n12": {
-  "at": "2026-11-08T23:01:45.491500+00:00",
-  "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
+  "at": "2026-11-09T02:40:38.642340+00:00",
+  "error": "Meta отказа (500): An unknown error occurred",
   "ok": false,
-  "tries": 2
+  "tries": 3
  },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
