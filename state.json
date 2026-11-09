@@ -62,6 +62,12 @@
   "ok": false,
   "tries": 3
  },
+ "n13": {
+  "at": "2026-11-09T10:23:48.561194+00:00",
+  "error": "Meta отказа (400): Missing or invalid image file",
+  "ok": false,
+  "tries": 1
+ },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
   "ok": false,
