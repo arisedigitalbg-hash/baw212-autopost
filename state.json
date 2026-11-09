@@ -63,8 +63,13 @@
   "tries": 3
  },
  "n13": {
-  "at": "2026-11-09T10:23:48.561194+00:00",
-  "error": "Meta отказа (400): Missing or invalid image file",
+  "at": "2026-11-09T20:58:32.549830+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
+ "n14": {
+  "at": "2026-11-09T20:58:32.549830+00:00",
+  "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
   "ok": false,
   "tries": 1
  },
