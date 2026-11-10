@@ -73,8 +73,14 @@
   "skipped": "too_late"
  },
  "n15": {
-  "at": "2026-11-10T11:35:27.209526+00:00",
+  "at": "2026-11-10T18:51:19.544616+00:00",
   "error": "Meta отказа (400): Missing or invalid image file",
+  "ok": false,
+  "tries": 2
+ },
+ "n16": {
+  "at": "2026-11-10T18:51:19.544616+00:00",
+  "error": "Meta отказа (400): Only photo or video can be accepted as media type.",
   "ok": false,
   "tries": 1
  },
@@ -99,16 +105,16 @@
   "skipped": "too_late"
  },
  "n61": {
-  "at": "2026-11-10T11:35:27.209526+00:00",
+  "at": "2026-11-10T18:51:19.544616+00:00",
   "error": "Meta отказа (400): Unable to fetch video file from URL.",
   "ok": false,
-  "tries": 1
+  "tries": 2
  },
  "n62": {
-  "at": "2026-11-10T11:35:27.209526+00:00",
+  "at": "2026-11-10T18:51:19.544616+00:00",
   "error": "Instagram не успя да обработи видеото.",
   "ok": false,
-  "tries": 1
+  "tries": 2
  },
  "n73": {
   "at": "2026-11-08T23:01:45.491500+00:00",
