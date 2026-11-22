@@ -193,7 +193,12 @@
   "remote_id": "17969238302982183"
  },
  "n39": {
-  "at": "2026-11-22T14:39:37.566806+00:00",
+  "at": "2026-11-22T20:50:18.352720+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
+ "n40": {
+  "at": "2026-11-22T20:50:18.352720+00:00",
   "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
   "ok": false,
   "tries": 1
@@ -279,16 +284,16 @@
   "skipped": "too_late"
  },
  "n77": {
-  "at": "2026-11-22T14:39:37.566806+00:00",
+  "at": "2026-11-22T20:50:18.352720+00:00",
   "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
   "ok": false,
-  "tries": 1
+  "tries": 2
  },
  "n78": {
-  "at": "2026-11-22T14:39:37.566806+00:00",
+  "at": "2026-11-22T20:50:18.352720+00:00",
   "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
   "ok": false,
-  "tries": 1
+  "tries": 2
  },
  "p01": {
   "at": "2026-10-01T06:51:59.273194+00:00",
