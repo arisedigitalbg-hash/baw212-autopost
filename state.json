@@ -213,7 +213,12 @@
   "skipped": "too_late"
  },
  "n43": {
-  "at": "2026-11-24T16:28:53.265312+00:00",
+  "at": "2026-11-25T01:01:28.617124+00:00",
+  "ok": false,
+  "skipped": "too_late"
+ },
+ "n44": {
+  "at": "2026-11-25T01:01:28.617124+00:00",
   "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
   "ok": false,
   "tries": 1
@@ -279,16 +284,14 @@
   "skipped": "too_late"
  },
  "n69": {
-  "at": "2026-11-24T16:28:53.265312+00:00",
-  "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
+  "at": "2026-11-25T01:01:28.617124+00:00",
   "ok": false,
-  "tries": 1
+  "skipped": "too_late"
  },
  "n70": {
-  "at": "2026-11-24T16:28:53.265312+00:00",
-  "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
+  "at": "2026-11-25T01:01:28.617124+00:00",
   "ok": false,
-  "tries": 1
+  "skipped": "too_late"
  },
  "n73": {
   "at": "2026-11-08T23:01:45.491500+00:00",
