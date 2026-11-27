@@ -238,10 +238,14 @@
   "skipped": "too_late"
  },
  "n48": {
-  "at": "2026-11-27T03:17:17.250756+00:00",
-  "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
+  "at": "2026-11-27T12:58:37.487312+00:00",
   "ok": false,
-  "tries": 2
+  "skipped": "too_late"
+ },
+ "n49": {
+  "at": "2026-11-27T12:58:37.487312+00:00",
+  "ok": true,
+  "remote_id": "1126436023880183_122133697749309338"
  },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
@@ -312,6 +316,18 @@
   "at": "2026-11-25T01:01:28.617124+00:00",
   "ok": false,
   "skipped": "too_late"
+ },
+ "n71": {
+  "at": "2026-11-27T12:58:37.487312+00:00",
+  "error": "Meta отказа (400): Unable to fetch video file from URL.",
+  "ok": false,
+  "tries": 1
+ },
+ "n72": {
+  "at": "2026-11-27T12:58:37.487312+00:00",
+  "error": "Instagram не успя да обработи видеото.",
+  "ok": false,
+  "tries": 1
  },
  "n73": {
   "at": "2026-11-08T23:01:45.491500+00:00",
