@@ -238,10 +238,10 @@
   "skipped": "too_late"
  },
  "n48": {
-  "at": "2026-11-26T20:33:25.722795+00:00",
+  "at": "2026-11-27T03:17:17.250756+00:00",
   "error": "Meta отказа (400): Error validating access token: Sessions for the user are not allowed because the user is not a confirmed user.",
   "ok": false,
-  "tries": 1
+  "tries": 2
  },
  "n57": {
   "at": "2026-11-04T17:55:52.449051+00:00",
